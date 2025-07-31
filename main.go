@@ -15,6 +15,15 @@ func main() {
 		Prefork: true, // Enable pre-forking
 	})
 
+	app.Use(func(ctx *fiber.Ctx) error {
+		// Middleware to log the request method and path
+		// fmt.Printf("%s %s\n", ctx.Method(), ctx.Path())
+		fmt.Println("Im middleware before processing request");
+		ctx.Next() // Call the next handler in the chain
+		fmt.Println("Im middleware after processing request");
+		return ctx.Next()
+	})
+
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("Hello, World!")
 	})
