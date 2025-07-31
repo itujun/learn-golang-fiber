@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -373,4 +374,16 @@ func TestView(t *testing.T){
 	assert.Contains(t, string(bytes), "Hello Title")
 	assert.Contains(t, string(bytes), "Hello Header")
 	assert.Contains(t, string(bytes), "Hello Content")
+}
+
+func TestHttpClient(t *testing.T){
+	client := fiber.AcquireClient()
+	defer fiber.ReleaseClient(client)
+
+	agent := client.Get("https://jsonplaceholder.typicode.com/posts/1")
+	status, response, err := agent.String() 
+	assert.Nil(t, err)
+	assert.Equal(t, 200, status)
+	assert.Contains(t, response, `"userId": 1`)
+	fmt.Println(response);
 }
