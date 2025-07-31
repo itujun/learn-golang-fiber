@@ -24,6 +24,9 @@ func main() {
 		return ctx.Next()
 	})
 
+	// Untuk contoh middleware lainnya, silakan lihat dokumentasi Fiber / kode dibawah ini
+	// https://docs.gofiber.io/category/-middleware
+
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("Hello, World!")
 	})
