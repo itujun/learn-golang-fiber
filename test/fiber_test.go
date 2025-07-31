@@ -185,3 +185,74 @@ func TestRequestBody(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "Hello, Lev!", string(bytes))
 }
+
+type RegisterRequest struct {
+	Username string `json:"username" xml:"username" form:"username"`
+	Password string `json:"password" xml:"password" form:"password"`
+	Name    string `json:"name" xml:"name" form:"name"`
+}
+func TestBodyParser(t *testing.T) {
+	app.Post("/register", func(ctx *fiber.Ctx) error {
+		request := new(RegisterRequest)
+		err := ctx.BodyParser(request) // Use BodyParser to parse JSON, XML, or form data
+		if err != nil {
+			return err
+		}
+
+		return ctx.SendString("Register success, username: " + request.Username)
+	})
+}
+
+func TestBodyParserJson(t *testing.T) {
+	TestBodyParser(t)
+
+	body := strings.NewReader(`{"username":"Lev","password":"secret","name":"Lev Tempest"}`)
+	request := httptest.NewRequest("POST", "/register", body)
+	request.Header.Set("Content-Type", "application/json") // Set content type for JSON data
+	response, err := app.Test(request)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "Register success, username: Lev", string(bytes))
+}
+
+func TestBodyParserForm(t *testing.T) {
+	TestBodyParser(t)
+
+	body := strings.NewReader("username=Lev&password=secret&name=Lev+Tempest")
+	request := httptest.NewRequest("POST", "/register", body)
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded") // Set content type for form data
+	response, err := app.Test(request)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "Register success, username: Lev", string(bytes))
+}
+
+func TestBodyParserXml(t *testing.T) {
+	TestBodyParser(t)
+
+	body := strings.NewReader(`
+	<RegisterRequest>
+		<username>Lev</username>
+		<password>secret</password>
+		<name>Lev Tempest</name>
+	</RegisterRequest>
+	`)
+	request := httptest.NewRequest("POST", "/register", body)
+	request.Header.Set("Content-Type", "application/xml") // Set content type for XML data
+	response, err := app.Test(request)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "Register success, username: Lev", string(bytes))
+}
