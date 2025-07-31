@@ -3,6 +3,7 @@ package learn_golang_fiber
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -152,4 +153,35 @@ func TestMultipartForm(t *testing.T) {
 	bytes, err :=io.ReadAll(response.Body)
 	assert.Nil(t, err)
 	assert.Equal(t, "Upload Success", string(bytes))
+}
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func TestRequestBody(t *testing.T) {
+	app.Post("/login", func(ctx *fiber.Ctx) error {
+		body := ctx.Body() // Read the request body
+
+		request := new(LoginRequest)
+		err := json.Unmarshal(body, request) // Unmarshal JSON body into struct
+		if err != nil {
+			return err
+		}
+
+		return ctx.SendString("Hello, " + request.Username + "!")
+	})
+
+	body := strings.NewReader(`{"username":"Lev","password":"secret"}`)
+	request := httptest.NewRequest("POST", "/login", body)
+	request.Header.Set("Content-Type", "application/json") // Set content type for JSON data
+	response, err := app.Test(request)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "Hello, Lev!", string(bytes))
 }
