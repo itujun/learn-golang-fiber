@@ -256,3 +256,23 @@ func TestBodyParserXml(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "Register success, username: Lev", string(bytes))
 }
+
+func TestResponseJson(t *testing.T) {
+	app.Get("/user", func(ctx *fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
+			"username": "Lev",
+			"name": "Lev Tempest",
+		})	
+	})
+
+	request := httptest.NewRequest("GET", "/user", nil)
+	request.Header.Set("Accept", "application/json") // Set content type for JSON data
+	response, err := app.Test(request)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"name":"Lev Tempest","username":"Lev"}`, string(bytes))
+}
