@@ -276,3 +276,19 @@ func TestResponseJson(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, `{"name":"Lev Tempest","username":"Lev"}`, string(bytes))
 }
+
+func TestDownloadFile(t *testing.T) {
+	app.Get("/download", func(ctx *fiber.Ctx) error {
+		return ctx.Download("source/contoh.txt", "contoh-downloaded.txt") // Download file
+	})
+
+	request := httptest.NewRequest("GET", "/download", nil)
+	response, err := app.Test(request)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, response.StatusCode)
+	assert.Equal(t, "attachment; filename=\"contoh-downloaded.txt\"", response.Header.Get("Content-Disposition")) // Check content disposition header
+
+	bytes, err :=io.ReadAll(response.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, `this is sample file for upload`, string(bytes))
+}
